@@ -16,6 +16,7 @@ const App = () => {
   const [quizLoading, setQuizLoading] = useState(false);
   const [userAnswers, setUserAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   const onSend = async () => {
     if (!promptMessage.trim() || isLoading) return;
@@ -62,6 +63,7 @@ const App = () => {
     setShowQuizModal(true);
     setQuizSubmitted(false);
     setUserAnswers({});
+    setCurrentQuestionIndex(0);
 
     const conversationSummary = messages
       .map((msg) => `${msg.role}: ${msg.content}`)
@@ -134,6 +136,13 @@ const App = () => {
     setQuizData(null);
     setUserAnswers({});
     setQuizSubmitted(false);
+    setCurrentQuestionIndex(0);
+  };
+
+  const handleNextQuestion = () => {
+    if (quizData && currentQuestionIndex < quizData.questions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+    }
   };
 
   const getScore = () => {
@@ -241,28 +250,23 @@ const App = () => {
                     <strong>Summary:</strong>
                     <p>{quizData.summary}</p>
                   </div>
-                  <div className="quiz-questions">
-                    {quizData.questions.map((q, qIndex) => (
-                      <div key={qIndex} className="quiz-question">
+                  {!quizSubmitted ? (
+                    <>
+                      <div className="quiz-progress">
+                        Question {currentQuestionIndex + 1} of {quizData.questions.length}
+                      </div>
+                      <div className="quiz-question">
                         <p className="question-text">
-                          <strong>{qIndex + 1}.</strong> {q.question}
+                          {quizData.questions[currentQuestionIndex].question}
                         </p>
                         <div className="options">
-                          {q.options.map((option, oIndex) => {
-                            const isSelected = userAnswers[qIndex] === oIndex;
-                            const isCorrect = q.correctAnswer === oIndex;
-                            let optionClass = "option";
-                            if (quizSubmitted) {
-                              if (isCorrect) optionClass += " correct";
-                              else if (isSelected) optionClass += " incorrect";
-                            } else if (isSelected) {
-                              optionClass += " selected";
-                            }
+                          {quizData.questions[currentQuestionIndex].options.map((option, oIndex) => {
+                            const isSelected = userAnswers[currentQuestionIndex] === oIndex;
                             return (
                               <div
                                 key={oIndex}
-                                className={optionClass}
-                                onClick={() => handleAnswerSelect(qIndex, oIndex)}
+                                className={`option${isSelected ? " selected" : ""}`}
+                                onClick={() => handleAnswerSelect(currentQuestionIndex, oIndex)}
                               >
                                 <span className="option-letter">
                                   {String.fromCharCode(65 + oIndex)}.
@@ -273,22 +277,46 @@ const App = () => {
                           })}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  {!quizSubmitted ? (
-                    <Button
-                      variant="dark"
-                      onClick={handleSubmitQuiz}
-                      disabled={Object.keys(userAnswers).length < quizData.questions.length}
-                      style={{ marginTop: "1rem" }}
-                    >
-                      Submit Answers
-                    </Button>
+                      <div className="quiz-navigation">
+                        {currentQuestionIndex < quizData.questions.length - 1 ? (
+                          <Button
+                            variant="dark"
+                            onClick={handleNextQuestion}
+                            disabled={userAnswers[currentQuestionIndex] === undefined}
+                          >
+                            Next
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="dark"
+                            onClick={handleSubmitQuiz}
+                            disabled={userAnswers[currentQuestionIndex] === undefined}
+                          >
+                            Submit
+                          </Button>
+                        )}
+                      </div>
+                    </>
                   ) : (
                     <div className="quiz-results">
                       <p>
                         <strong>Score: {getScore()} / {quizData.questions.length}</strong>
                       </p>
+                      <div className="quiz-answers-review">
+                        {quizData.questions.map((q, qIndex) => (
+                          <div key={qIndex} className="quiz-answer-item">
+                            <p className="question-text">
+                              <strong>{qIndex + 1}.</strong> {q.question}
+                            </p>
+                            <p className={userAnswers[qIndex] === q.correctAnswer ? "answer-correct" : "answer-incorrect"}>
+                              Your answer: {q.options[userAnswers[qIndex]]}
+                              {userAnswers[qIndex] !== q.correctAnswer && (
+                                <span className="correct-answer"> (Correct: {q.options[q.correctAnswer]})</span>
+                              )}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
                       <Button variant="outline-dark" onClick={closeModal}>
                         Close
                       </Button>

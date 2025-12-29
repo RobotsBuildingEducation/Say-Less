@@ -222,3 +222,47 @@
   font-size: 1.25rem;
   margin-bottom: 1rem;
 }
+
+.quiz-progress {
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.quiz-navigation {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.quiz-answers-review {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.quiz-answer-item {
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.quiz-answer-item .question-text {
+  margin-bottom: 0.5rem;
+}
+
+.answer-correct {
+  color: #2e7d32;
+  margin: 0;
+}
+
+.answer-incorrect {
+  color: #c62828;
+  margin: 0;
+}
+
+.correct-answer {
+  color: #2e7d32;
+  font-weight: 500;
+}
