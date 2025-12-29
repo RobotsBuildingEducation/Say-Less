@@ -34,4 +34,7 @@ Additionally, change the name to your project in the `.firebaserc` file in this 
 
 Lastly, you'll need to enable Firebase AI Logic with the vertexAI product. This will allow you to run AI and all of this can be found in firebase.
 
+<img width="1188" height="568" alt="image" src="https://github.com/user-attachments/assets/36baf437-0dfc-4074-984b-060e206e5f7e" />
+
+
 Similarly, if you want to use OpenAI, Claude, etc, it's the same idea. You'll need to create an account with them, go to your developer dashboard, get an API key and connect it to your project.
