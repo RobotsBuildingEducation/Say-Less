@@ -17,7 +17,7 @@ const analytics = getAnalytics(app);
 
 const vertexAI = getVertexAI(app, { location: "global" });
 export const model = getGenerativeModel(vertexAI, {
-  model: "gemini-2.0-flash",
+  model: "gemini-3-flash-preview",
   generationConfig: {
     thinkingConfig: { thinkingBudget: 0 },
   },
