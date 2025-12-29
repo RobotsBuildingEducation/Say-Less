@@ -108,7 +108,8 @@ const App = () => {
         summary: "Unable to generate quiz summary.",
         questions: [
           {
-            question: "Sorry, there was an error generating the quiz. Please try again.",
+            question:
+              "Sorry, there was an error generating the quiz. Please try again.",
             options: ["OK"],
             correctAnswer: 0,
           },
@@ -253,36 +254,50 @@ const App = () => {
                   {!quizSubmitted ? (
                     <>
                       <div className="quiz-progress">
-                        Question {currentQuestionIndex + 1} of {quizData.questions.length}
+                        Question {currentQuestionIndex + 1} of{" "}
+                        {quizData.questions.length}
                       </div>
                       <div className="quiz-question">
                         <p className="question-text">
                           {quizData.questions[currentQuestionIndex].question}
                         </p>
                         <div className="options">
-                          {quizData.questions[currentQuestionIndex].options.map((option, oIndex) => {
-                            const isSelected = userAnswers[currentQuestionIndex] === oIndex;
-                            return (
-                              <div
-                                key={oIndex}
-                                className={`option${isSelected ? " selected" : ""}`}
-                                onClick={() => handleAnswerSelect(currentQuestionIndex, oIndex)}
-                              >
-                                <span className="option-letter">
-                                  {String.fromCharCode(65 + oIndex)}.
-                                </span>
-                                {option}
-                              </div>
-                            );
-                          })}
+                          {quizData.questions[currentQuestionIndex].options.map(
+                            (option, oIndex) => {
+                              const isSelected =
+                                userAnswers[currentQuestionIndex] === oIndex;
+                              return (
+                                <div
+                                  key={oIndex}
+                                  className={`option${
+                                    isSelected ? " selected" : ""
+                                  }`}
+                                  onClick={() =>
+                                    handleAnswerSelect(
+                                      currentQuestionIndex,
+                                      oIndex
+                                    )
+                                  }
+                                >
+                                  <span className="option-letter">
+                                    {String.fromCharCode(65 + oIndex)}.
+                                  </span>
+                                  {option}
+                                </div>
+                              );
+                            }
+                          )}
                         </div>
                       </div>
                       <div className="quiz-navigation">
-                        {currentQuestionIndex < quizData.questions.length - 1 ? (
+                        {currentQuestionIndex <
+                        quizData.questions.length - 1 ? (
                           <Button
                             variant="dark"
                             onClick={handleNextQuestion}
-                            disabled={userAnswers[currentQuestionIndex] === undefined}
+                            disabled={
+                              userAnswers[currentQuestionIndex] === undefined
+                            }
                           >
                             Next
                           </Button>
@@ -290,7 +305,9 @@ const App = () => {
                           <Button
                             variant="dark"
                             onClick={handleSubmitQuiz}
-                            disabled={userAnswers[currentQuestionIndex] === undefined}
+                            disabled={
+                              userAnswers[currentQuestionIndex] === undefined
+                            }
                           >
                             Submit
                           </Button>
@@ -300,7 +317,9 @@ const App = () => {
                   ) : (
                     <div className="quiz-results">
                       <p>
-                        <strong>Score: {getScore()} / {quizData.questions.length}</strong>
+                        <strong>
+                          Score: {getScore()} / {quizData.questions.length}
+                        </strong>
                       </p>
                       <div className="quiz-answers-review">
                         {quizData.questions.map((q, qIndex) => (
@@ -308,10 +327,19 @@ const App = () => {
                             <p className="question-text">
                               <strong>{qIndex + 1}.</strong> {q.question}
                             </p>
-                            <p className={userAnswers[qIndex] === q.correctAnswer ? "answer-correct" : "answer-incorrect"}>
+                            <p
+                              className={
+                                userAnswers[qIndex] === q.correctAnswer
+                                  ? "answer-correct"
+                                  : "answer-incorrect"
+                              }
+                            >
                               Your answer: {q.options[userAnswers[qIndex]]}
                               {userAnswers[qIndex] !== q.correctAnswer && (
-                                <span className="correct-answer"> (Correct: {q.options[q.correctAnswer]})</span>
+                                <span className="correct-answer">
+                                  {" "}
+                                  (Correct: {q.options[q.correctAnswer]})
+                                </span>
                               )}
                             </p>
                           </div>
