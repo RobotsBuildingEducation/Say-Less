@@ -10,6 +10,13 @@ const App = () => {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Quiz modal state
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [quizData, setQuizData] = useState(null);
+  const [quizLoading, setQuizLoading] = useState(false);
+  const [userAnswers, setUserAnswers] = useState({});
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+
   const onSend = async () => {
     if (!promptMessage.trim() || isLoading) return;
 
@@ -50,6 +57,94 @@ const App = () => {
     window.scrollTo(0, document.body.scrollHeight);
   }, [messages]);
 
+  const generateQuiz = async () => {
+    setQuizLoading(true);
+    setShowQuizModal(true);
+    setQuizSubmitted(false);
+    setUserAnswers({});
+
+    const conversationSummary = messages
+      .map((msg) => `${msg.role}: ${msg.content}`)
+      .join("\n\n");
+
+    const quizPrompt = `
+    Based on this conversation about making messages more concise:
+
+    ${conversationSummary}
+
+    Generate a quiz with exactly 3 multiple choice questions to test if the user understands how to make statements more concise.
+
+    Each question should test understanding of concise communication principles demonstrated in the conversation.
+
+    Return ONLY valid JSON in this exact format (no markdown, no code blocks):
+    {
+      "summary": "A brief 2-3 sentence summary of the key conciseness lessons from this conversation",
+      "questions": [
+        {
+          "question": "The question text",
+          "options": ["Option A", "Option B", "Option C", "Option D"],
+          "correctAnswer": 0
+        }
+      ]
+    }
+
+    The correctAnswer should be the index (0-3) of the correct option.
+    `;
+
+    try {
+      const result = await model.generateContent(quizPrompt);
+      const response = result.response;
+      const text = response.text();
+
+      // Parse the JSON response
+      const cleanedText = text.replace(/```json\n?|\n?```/g, "").trim();
+      const quiz = JSON.parse(cleanedText);
+      setQuizData(quiz);
+    } catch (error) {
+      console.error("Error generating quiz:", error);
+      setQuizData({
+        summary: "Unable to generate quiz summary.",
+        questions: [
+          {
+            question: "Sorry, there was an error generating the quiz. Please try again.",
+            options: ["OK"],
+            correctAnswer: 0,
+          },
+        ],
+      });
+    } finally {
+      setQuizLoading(false);
+    }
+  };
+
+  const handleAnswerSelect = (questionIndex, answerIndex) => {
+    if (quizSubmitted) return;
+    setUserAnswers((prev) => ({
+      ...prev,
+      [questionIndex]: answerIndex,
+    }));
+  };
+
+  const handleSubmitQuiz = () => {
+    setQuizSubmitted(true);
+  };
+
+  const closeModal = () => {
+    setShowQuizModal(false);
+    setQuizData(null);
+    setUserAnswers({});
+    setQuizSubmitted(false);
+  };
+
+  const getScore = () => {
+    if (!quizData) return 0;
+    let correct = 0;
+    quizData.questions.forEach((q, i) => {
+      if (userAnswers[i] === q.correctAnswer) correct++;
+    });
+    return correct;
+  };
+
   return (
     <>
       <div className="chat-wrapper">
@@ -59,6 +154,18 @@ const App = () => {
             An assistant to help you clarify and improve your business language.
           </b>
         </small>
+        {messages.length > 0 && (
+          <div style={{ marginTop: "1rem" }}>
+            <Button
+              variant="outline-dark"
+              size="sm"
+              onClick={generateQuiz}
+              disabled={isLoading || quizLoading}
+            >
+              Summarize Conversation
+            </Button>
+          </div>
+        )}
         {messages.length < 1 ? (
           <div className="empty"></div>
         ) : (
@@ -112,6 +219,87 @@ const App = () => {
           </Button>
         </div>
       </div>
+
+      {/* Quiz Modal */}
+      {showQuizModal && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h4>Summary Quiz</h4>
+              <button className="modal-close" onClick={closeModal}>
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
+              {quizLoading ? (
+                <div className="quiz-loading">
+                  <em>Generating quiz...</em>
+                </div>
+              ) : quizData ? (
+                <>
+                  <div className="quiz-summary">
+                    <strong>Summary:</strong>
+                    <p>{quizData.summary}</p>
+                  </div>
+                  <div className="quiz-questions">
+                    {quizData.questions.map((q, qIndex) => (
+                      <div key={qIndex} className="quiz-question">
+                        <p className="question-text">
+                          <strong>{qIndex + 1}.</strong> {q.question}
+                        </p>
+                        <div className="options">
+                          {q.options.map((option, oIndex) => {
+                            const isSelected = userAnswers[qIndex] === oIndex;
+                            const isCorrect = q.correctAnswer === oIndex;
+                            let optionClass = "option";
+                            if (quizSubmitted) {
+                              if (isCorrect) optionClass += " correct";
+                              else if (isSelected) optionClass += " incorrect";
+                            } else if (isSelected) {
+                              optionClass += " selected";
+                            }
+                            return (
+                              <div
+                                key={oIndex}
+                                className={optionClass}
+                                onClick={() => handleAnswerSelect(qIndex, oIndex)}
+                              >
+                                <span className="option-letter">
+                                  {String.fromCharCode(65 + oIndex)}.
+                                </span>
+                                {option}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {!quizSubmitted ? (
+                    <Button
+                      variant="dark"
+                      onClick={handleSubmitQuiz}
+                      disabled={Object.keys(userAnswers).length < quizData.questions.length}
+                      style={{ marginTop: "1rem" }}
+                    >
+                      Submit Answers
+                    </Button>
+                  ) : (
+                    <div className="quiz-results">
+                      <p>
+                        <strong>Score: {getScore()} / {quizData.questions.length}</strong>
+                      </p>
+                      <Button variant="outline-dark" onClick={closeModal}>
+                        Close
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
