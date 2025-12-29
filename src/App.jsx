@@ -53,7 +53,7 @@ const App = () => {
   return (
     <>
       <div className="chat-wrapper">
-        <h1>Say Less.</h1>
+        <h3>Say Less.</h3>
         <small>
           <b>
             An assistant to help you clarify and improve your business language.
