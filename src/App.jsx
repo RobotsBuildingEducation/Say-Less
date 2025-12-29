@@ -6,20 +6,29 @@ import { model } from "./database/setup";
 import "./example.css";
 
 const App = () => {
-  const [promptText, setPromptText] = useState("");
+  const [promptMessage, setpromptMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const onSend = async () => {
-    if (!promptText.trim() || isLoading) return;
+    if (!promptMessage.trim() || isLoading) return;
 
-    const userMessage = { role: "user", content: promptText };
+    const promptContext = `
+    The user has submitted the message ${promptMessage}
+    
+    Your role is to provide examples of how to say the message shorter, more concise and effectively.
+
+    Do not mention anything other that your examples, get straight to the point.
+    
+    `;
+
+    const userMessage = { role: "user", content: promptMessage };
     setMessages((prev) => [...prev, userMessage]);
-    setPromptText("");
+    setpromptMessage("");
     setIsLoading(true);
 
     try {
-      const result = await model.generateContent(promptText);
+      const result = await model.generateContent(promptContext);
       const response = result.response;
       const text = response.text();
 
@@ -93,9 +102,9 @@ const App = () => {
       <div className="prompt-wrapper">
         <div>
           <textarea
-            value={promptText}
+            value={promptMessage}
             placeholder="Message"
-            onChange={(event) => setPromptText(event.target.value)}
+            onChange={(event) => setpromptMessage(event.target.value)}
             disabled={isLoading}
           />
           <Button variant="light" onMouseDown={onSend} disabled={isLoading}>

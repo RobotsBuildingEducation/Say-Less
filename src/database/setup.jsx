@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getVertexAI, getGenerativeModel } from "firebase/vertexai";
+import { getVertexAI, getGenerativeModel } from "@firebase/vertexai";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,7 +15,7 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
-const vertexAI = getVertexAI(app);
+const vertexAI = getVertexAI(app, { location: "global" });
 export const model = getGenerativeModel(vertexAI, {
   model: "gemini-2.0-flash",
   generationConfig: {
